@@ -1,0 +1,97 @@
+Optimal :
+#include <stdio.h>
+// Function to predict the page to be replaced
+int predict(int pages[], int frames[], int pageIndex, int n, int frameCount) {
+ int result = -1, farthest = pageIndex;
+ for (int i = 0; i < frameCount; i++) {
+ int j;
+ for (j = pageIndex; j < n; j++) {
+ if (frames[i] == pages[j]) {
+ if (j > farthest) {
+ farthest = j;
+ result = i;
+ }
+ break;
+ }
+ }
+ // If the page is never used in future, replace it
+ if (j == n)
+ return i;
+ }
+ return (result == -1) ? 0 : result;
+}
+int main() {
+ int n, frameCount;
+ int pages[30], frames[10];
+ int pageFaults = 0, hit;
+ printf("Enter number of frames: ");
+ scanf("%d", &frameCount);
+ printf("Enter number of pages: ");
+ scanf("%d", &n);
+ printf("Enter the page reference string: ");
+ for (int i = 0; i < n; i++) {
+ scanf("%d", &pages[i]);
+ }
+ for (int i = 0; i < frameCount; i++) {
+ frames[i] = -1;
+ }
+ for (int i = 0; i < n; i++) {
+ hit = 0;
+ // Check if page is already in frame
+ for (int j = 0; j < frameCount; j++) {
+ if (frames[j] == pages[i]) {
+ hit = 1; // Page Hit
+ break;
+ }
+ }
+ // If not present → Page Fault
+ if (hit == 0) {
+ // If empty space available
+ int placed = 0;
+ for (int j = 0; j < frameCount; j++) {
+ if (frames[j] == -1) {
+ frames[j] = pages[i];
+ pageFaults++;
+ placed = 1;
+ break;
+ }
+ }
+ // If no empty space → replace Optimal page
+ if (!placed) {
+ int pos = predict(pages, frames, i + 1, n, frameCount);
+ frames[pos] = pages[i];
+ pageFaults++;
+ }
+ }
+ // Print current frame status
+ printf("For page %d: ", pages[i]);
+ for (int j = 0; j < frameCount; j++) {
+ if (frames[j] == -1)
+ printf(" - ");
+ else
+ printf(" %d ", frames[j]);
+ }
+ printf("\n");
+ }
+ printf("\nTotal Page Faults = %d\n", pageFaults);
+ return 0;
+}
+Output :
+bvcoew@bvcoew-OptiPlex-3000:~$ gcc optimal.c
+bvcoew@bvcoew-OptiPlex-3000:~$ ./a.out
+Enter number of frames: 3
+Enter number of pages: 12
+Enter the page reference string: 2 3 2 1 5 2 4 5 3 2 5 2
+For page 2: 2 - -
+For page 3: 2 3 -
+For page 2: 2 3 -
+For page 1: 2 3 1
+For page 5: 2 3 5
+For page 2: 2 3 5
+For page 4: 4 3 5
+For page 5: 4 3 5
+For page 3: 4 3 5
+For page 2: 2 3 5
+For page 5: 2 3 5
+For page 2: 2 3 5
+Total Page Faults = 6

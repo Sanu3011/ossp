@@ -1,0 +1,67 @@
+
+FCFS :
+#include <stdio.h>
+int main() {
+ int framesCount, pagesCount;
+ int frames[10], pages[30];
+ int i, j, k, pageFaults = 0, flag, index = 0;
+ // Input number of frames
+ printf("Enter number of frames: ");
+ scanf("%d", &framesCount);
+ // Input number of pages
+ printf("Enter number of pages: ");
+ scanf("%d", &pagesCount);
+ // Input page reference string
+ printf("Enter the page reference string: ");
+ for (i = 0; i < pagesCount; i++) {
+ scanf("%d", &pages[i]);
+ }
+ // Initialize frames with -1 (empty)
+ for (i = 0; i < framesCount; i++) {
+ frames[i] = -1;
+ }
+ // FIFO page replacement
+ for (i = 0; i < pagesCount; i++) {
+ flag = 0;
+ // Check if page already exists in frame
+ for (j = 0; j < framesCount; j++) {
+ if (frames[j] == pages[i]) {
+ flag = 1; // Hit
+ break;
+ }
+ }
+ // If not found → Page Fault
+ if (flag == 0) {
+ frames[index] = pages[i]; // Replace using FIFO
+ index = (index + 1) % framesCount;
+ pageFaults++;
+ // Print current frame contents
+ printf("For page %d: ", pages[i]);
+ for (k = 0; k < framesCount; k++) {
+ if (frames[k] == -1)
+ printf(" - ");
+ else
+ printf(" %d ", frames[k]);
+ }
+ printf("\n");
+ }
+ }
+ printf("\nTotal Page Faults = %d\n", pageFaults);
+ return 0;
+}
+Output :
+bvcoew@bvcoew-OptiPlex-3000:~$ gcc fcfs.c
+bvcoew@bvcoew-OptiPlex-3000:~$ ./a.out
+Enter number of frames: 3
+Enter number of pages: 12
+Enter the page reference string: 2 3 2 1 5 2 4 5 3 2 5 2
+For page 2: 2 - -
+For page 3: 2 3 -
+For page 1: 2 3 1
+For page 5: 5 3 1
+For page 2: 5 2 1
+For page 4: 5 2 4
+For page 3: 3 2 4
+For page 5: 3 5 4
+For page 2: 3 5 2
+Total Page Faults = 9

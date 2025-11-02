@@ -1,0 +1,262 @@
+
+name=-1
+city=-1
+code=-1
+mobno=-1
+n=0
+ch=0
+while [ $ch -ne 7 ]
+do
+ echo -e "\n=== Address Book Menu ==="
+ echo "1. Create New Address Book File"
+ echo "2. View Address Book"
+ echo "3. Insert New Record"
+ echo "4. Delete a Record"
+ echo "5. Search a Record"
+ echo "6. Modify a Record"
+ echo "7. Exit"
+ echo -n "Enter your choice: "
+ read ch
+ case $ch in
+ 1) # Create Database
+ echo -n "Enter file name : "
+ read fname
+ touch "$fname"
+ echo "Enter the number of records to be entered in file $fname:"
+ read n
+ i=$n
+ while [ $i -gt 0 ]
+ do
+ echo -n "Enter name:"
+ read name
+ echo -n "Enter City:"
+ read city
+ echo -n "Enter Zipcode:"
+ read code
+ echo -n "Enter Mobile no.:"
+ read mobno
+ echo "$name|$city|$code|$mobno" >> "$fname"
+ echo "Your data is stored in the file."
+ i=$((i-1))
+ done
+ ;;
+
+ 2) # View Database
+ if [ -f "$fname" ]; then
+ cat "$fname"
+ else
+ echo -n "File not found. Create database first!"
+ fi
+ ;;
+
+ 3) # Insert Record
+ echo -n "Enter name:"
+ read name
+ echo "Enter City:"
+ read city
+ echo "Enter Zipcode:"
+ read code
+ echo "Enter Mobile no.:"
+ read mobno
+ echo "$name|$city|$code|$mobno" >> "$fname"
+ echo "Record inserted successfully."
+ ;;
+
+ 4) # Delete Record
+ echo -n "Enter the name of the record to be deleted:"
+ read no
+ if grep -w "$no" "$fname" > /dev/null; then
+ grep -w -v "$no" "$fname" > temp
+ mv temp "$fname"
+ echo "Record deleted successfully!"
+ else
+ echo "Record not found."
+ fi
+ ;;
+ 5) # Search Record
+ echo -n "Enter the name of the record to be searched:"
+ read no
+ if grep -w "$no" "$fname" > /dev/null; then
+ grep -w "$no" "$fname"
+ else
+ echo "Record not found."
+ fi
+ ;;
+
+ 6) # Modify Record
+ echo -n "Enter the name of the record to be modified:"
+ read name
+ if grep -w "$name" "$fname" > /dev/null; then
+ grep -w -v "$name" "$fname" > temp
+ echo -e "Enter new name:"
+ read name
+ echo "Enter new City:"
+ read city
+ echo "Enter new Zipcode:"
+ read code
+ echo "Enter new Mobile no.:"
+ read mobno
+ echo "$name|$city|$code|$mobno" >> temp
+ mv temp "$fname"
+ echo "Record modified successfully."
+ else
+ echo "Record not found!"
+ fi
+ ;;
+
+ 7) # Exit
+ echo -n "Exiting the program. Goodbye!"
+ ;;
+
+ *) echo -n "Invalid choice. Please enter a number between 1 and 7."
+ ;;
+ esac
+done
+Output :
+bvcoew@bvcoew-OptiPlex-3000:~$ sh newfile.sh
+=== Address Book Menu ===
+1. Create New Address Book File
+2. View Address Book
+3. Insert New Record
+4. Delete a Record
+5. Search a Record
+6. Modify a Record
+7. Exit
+Enter your choice: 1
+Enter file name : f1.txt
+Enter the number of records to be entered in file f1.txt:
+4
+Enter name:Sanika
+Enter City:Pune
+Enter Zipcode:411034
+Enter Mobile no.:7898564378
+Your data is stored in the file.
+Enter name:Aditi
+Enter City:Pune
+Enter Zipcode:411064
+Enter Mobile no.:9873093421
+Your data is stored in the file.
+Enter name:Gayatri
+Enter City:Latur
+Enter Zipcode:456732
+Enter Mobile no.:8976093278
+Your data is stored in the file.
+Enter name:Manisha
+Enter City:Pune
+Enter Zipcode:411046
+Enter Mobile no.:8976032562
+Your data is stored in the file.
+=== Address Book Menu ===
+1. Create New Address Book File
+2. View Address Book
+3. Insert New Record
+4. Delete a Record
+5. Search a Record
+6. Modify a Record
+7. Exit
+Enter your choice: 2
+Sanika|Pune|411034|7898564378
+Aditi|Pune|411064|9873093421
+Gayatri|Latur|456732|8976093278
+Manisha|Pune|411046|8976032562
+=== Address Book Menu ===
+1. Create New Address Book File
+2. View Address Book
+3. Insert New Record
+4. Delete a Record
+5. Search a Record
+6. Modify a Record
+7. Exit
+Enter your choice: 3
+Enter name:Saniya
+Enter City:Sangli
+Enter Zipcode:416416
+Enter Mobile no.:7890543278
+Record inserted successfully.
+=== Address Book Menu ===
+1. Create New Address Book File
+2. View Address Book
+3. Insert New Record
+4. Delete a Record
+5. Search a Record
+6. Modify a Record
+7. Exit
+Enter your choice: 2
+Sanika|Pune|411034|7898564378
+Aditi|Pune|411064|9873093421
+Gayatri|Latur|456732|8976093278
+Manisha|Pune|411046|8976032562
+Saniya|Sangli|416416|7890543278
+=== Address Book Menu ===
+1. Create New Address Book File
+2. View Address Book
+3. Insert New Record
+4. Delete a Record
+5. Search a Record
+6. Modify a Record
+7. Exit
+Enter your choice: 4
+Enter the name of the record to be deleted:Saniya
+Record deleted successfully!
+=== Address Book Menu ===
+1. Create New Address Book File
+2. View Address Book
+3. Insert New Record
+4. Delete a Record
+5. Search a Record
+6. Modify a Record
+7. Exit
+Enter your choice: 2
+Sanika|Pune|411034|7898564378
+Aditi|Pune|411064|9873093421
+Gayatri|Latur|456732|8976093278
+Manisha|Pune|411046|8976032562
+=== Address Book Menu ===
+1. Create New Address Book File
+2. View Address Book
+3. Insert New Record
+4. Delete a Record
+5. Search a Record
+6. Modify a Record
+7. Exit
+Enter your choice: 5
+Enter the name of the record to be searched:Gayatri
+Gayatri|Latur|456732|8976093278
+=== Address Book Menu ===
+1. Create New Address Book File
+2. View Address Book
+3. Insert New Record
+4. Delete a Record
+5. Search a Record
+6. Modify a Record
+7. Exit
+Enter your choice: 6
+Enter the name of the record to be modified:Gayatri
+Enter new name:Gayatri
+Enter new City:Pune
+Enter new Zipcode:411046
+Enter new Mobile no.:8976549054
+Record modified successfully.
+=== Address Book Menu ===
+1. Create New Address Book File
+2. View Address Book
+3. Insert New Record
+4. Delete a Record
+5. Search a Record
+6. Modify a Record
+7. Exit
+Enter your choice: 2
+Sanika|Pune|411034|7898564378
+Aditi|Pune|411064|9873093421
+Manisha|Pune|411046|8976032562
+Gayatri|Pune|411046|8976549054
+=== Address Book Menu ===
+1. Create New Address Book File
+2. View Address Book
+3. Insert New Record
+4. Delete a Record
+5. Search a Record
+6. Modify a Record
+7. Exit
+Enter your choice: 7
+Exiting the program. Goodbye!

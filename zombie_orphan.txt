@@ -1,0 +1,138 @@
+
+#include<sys/types.h>
+#include<sys/wait.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+void quicksort(int[10],int,int);
+int main()
+{
+int pid,ppid,a[10],size,i;
+printf("\nPARENT : My process id is %d",getpid());
+printf("\n\nEnter the number of elements in the array : ");
+scanf("%d",&size);
+printf("Enter %d Elements : ",size);
+for (i=0;i<size;i++)
+scanf("%d",&a[i]);
+printf("\nForking Call Now!\n");
+pid = fork();
+if(pid>0)
+{
+system("wait");
+printf("\nPARENT : I am back now.");
+printf("\nPARENT : My process id is %d.",getpid());
+printf("\nPARENT: My child's process id is %d",pid);
+quicksort(a,0,size-1);
+printf("\nSorted Elements : ");
+for(i=0;i<size;i++)
+printf("%d ",a[i]);
+printf("\n");
+//zombies state
+sleep(10);
+printf("\nPARENT : I am sleeping now.");
+printf("\n-------------------------------------\n\n");
+system("ps -elf | grep a.out");
+//printf("\nPARENT : I am dying now.");
+//printf("\n-------------------------------------\n\n");
+//system("ps -elf | grep a.out");
+//exit(0);
+}
+else if(pid == 0)
+{
+printf("\nCHILD : My process id is %d.",getpid());
+printf("\nCHILD: My parent's process id is %d",getppid());
+quicksort(a,0,size-1);
+printf("\nSorted Elements : ");
+for(i=0;i<size;i++)
+printf("%d ",a[i]);
+// orphan state
+// printf("\nCHILD : I am sleeping now.");
+//sleep(10);
+//printf("\n-------------------------------------\n\n");
+//system("ps -elf | grep a.out");
+//printf("\n");
+// zombie state
+printf("\nCHILD : My tasks are completed.");
+system("ps -elf | grep a.out");
+exit(0);
+}
+}
+void quicksort(int a[10],int first,int last)
+{
+int pivot,j,i,temp;
+if(first<last)
+{
+pivot = first;
+i=first;
+j=last;
+while(i<j)
+{
+while(a[i]<=a[pivot]&&i<last)
+i++;
+while(a[j]>a[pivot])
+j--;
+if(i<j)
+{
+temp = a[i];
+a[i] = a[j];
+a[j] = temp;
+}
+}
+temp = a[pivot];
+a[pivot] = a[j];
+a[j] = temp;
+quicksort(a,first,j-1);
+quicksort(a,j+1,last);
+}
+}
+Output:
+//zombie state
+bvcoew@bvcoew-OptiPlex-3000:~/Documents$ gcc osassign2.c
+bvcoew@bvcoew-OptiPlex-3000:~/Documents$ ./a.out
+PARENT : My process id is 7195
+Enter the number of elements in the array : 4
+Enter 4 Elements : 3 4 6 7
+Forking Call Now!
+CHILD : My process id is 7741.
+CHILD: My parent's process id is 7195
+Sorted Elements : 3 4 6 7
+PARENT : I am back now.
+PARENT : My process id is 7195.
+PARENT: My child's process id is 7741
+Sorted Elements : 3 4 6 7
+0 S bvcoew 7195 6137 0 80 0 - 694 hrtime 12:01 pts/0 00:00:00 ./a.out
+1 S bvcoew 7741 7195 0 80 0 - 694 do_wai 12:01 pts/0 00:00:00 ./a.out
+0 S bvcoew 7743 7741 0 80 0 - 723 do_wai 12:01 pts/0 00:00:00 sh -c ps -elf | grep a.out
+0 S bvcoew 7745 7743 0 80 0 - 2270 pipe_r 12:01 pts/0 00:00:00 grep a.out
+CHILD : My tasks are completed.
+PARENT : I am sleeping now.
+-------------------------------------
+0 S bvcoew 7195 6137 0 80 0 - 694 do_wai 12:01 pts/0 00:00:00 ./a.out
+1 Z bvcoew 7741 7195 0 80 0 - 0 - 12:01 pts/0 00:00:00 [a.out] <defunct>
+0 S bvcoew 7752 7195 0 80 0 - 723 do_wai 12:01 pts/0 00:00:00 sh -c ps -elf | grep a.out
+0 S bvcoew 7754 7752 0 80 0 - 2270 pipe_r 12:01 pts/0 00:00:00 grep a.out
+//orphan state
+bvcoew@bvcoew-OptiPlex-3000:~/Documents$ gcc osassign2.c
+bvcoew@bvcoew-OptiPlex-3000:~/Documents$ ./a.out
+PARENT : My process id is 6573
+Enter the number of elements in the array : 2
+Enter 2 Elements : 33 55
+Forking Call Now!
+CHILD : My process id is 6582.
+CHILD: My parent's process id is 6573
+Sorted Elements : 33 55
+PARENT : I am back now.
+PARENT : My process id is 6573.
+PARENT: My child's process id is 6582
+Sorted Elements : 33 55
+PARENT : I am dying now.
+-------------------------------------
+0 S bvcoew 6573 6137 0 80 0 - 694 do_wai 11:57 pts/0 00:00:00 ./a.out
+1 S bvcoew 6582 6573 0 80 0 - 694 hrtime 11:57 pts/0 00:00:00 ./a.out
+0 S bvcoew 6584 6573 0 80 0 - 723 do_wai 11:57 pts/0 00:00:00 sh -c ps -elf | grep a.out
+0 S bvcoew 6586 6584 0 80 0 - 2270 pipe_r 11:57 pts/0 00:00:00 grep a.out
+CHILD : I am sleeping now.
+-------------------------------------
+1 S bvcoew 6582 2041 0 80 0 - 694 do_wai 11:57 pts/0 00:00:00 ./a.out
+0 S bvcoew 6593 6582 0 80 0 - 723 do_wai 11:58 pts/0 00:00:00 sh -c ps -elf | grep a.out
+0 S bvcoew 6595 6593 0 80 0 - 2270 pipe_r 11:58 pts/0 00:00:00 grep a.out

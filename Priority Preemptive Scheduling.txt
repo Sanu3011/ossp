@@ -1,0 +1,167 @@
+// Priority Preemptive 
+
+#include <iostream>
+#include <iomanip>
+using namespace std;
+
+struct Process {
+    int pid;   // Process ID
+    int at;    // Arrival Time
+    int bt;    // Burst Time
+    int pr;    // Priority (lower = higher priority)
+    int ct;    // Completion Time
+    int tat;   // Turnaround Time
+    int wt;    // Waiting Time
+    int rt;    // Remaining Time
+    bool done; // Finished or not
+};
+
+struct Slot {
+    int pid;   // process id (-1 = idle)
+    int start;
+    int end;
+};
+
+
+
+// Priority Preemptive Scheduling
+int priorityPreemptive(Process proc[], int n, Slot slots[]) {
+    int time = 0, completed = 0, k = 0;
+    for (int i = 0; i < n; i++) proc[i].rt = proc[i].bt;
+
+    while (completed < n) {
+        int idx = -1;
+        int bestPr = 999999;
+
+        // Find highest priority among arrived
+        for (int i = 0; i < n; i++) {
+            if (proc[i].rt > 0 && proc[i].at <= time) {
+                if (proc[i].pr < bestPr) {
+                    bestPr = proc[i].pr;
+                    idx = i;
+                }
+                else if (proc[i].pr == bestPr && proc[i].at < proc[idx].at) {
+                    idx = i;
+                }
+            }
+        }
+
+        if (idx == -1) { // CPU idle
+            slots[k].pid = -1;
+            slots[k].start = time;
+            time++;
+            slots[k].end = time;
+            k++;
+        } else {
+            slots[k].pid = proc[idx].pid;
+            slots[k].start = time;
+
+            // Run for 1 unit
+            time++;
+            proc[idx].rt--;
+
+            slots[k].end = time;
+
+            // If completed
+            if (proc[idx].rt == 0) {
+                proc[idx].ct = time;
+                proc[idx].tat = proc[idx].ct - proc[idx].at;
+                proc[idx].wt = proc[idx].tat - proc[idx].bt;
+                proc[idx].done = true;
+                completed++;
+            }
+
+            // Merge consecutive same process slots
+            if (k > 0 && slots[k].pid == slots[k-1].pid) {
+                slots[k-1].end = slots[k].end;
+                k--;
+            }
+            k++;
+        }
+    }
+
+    return k; // number of slots
+}
+
+// Display process table
+void display(Process proc[], int n) {
+    float total_wt = 0, total_tat = 0;
+
+    cout << "\nProcesses\tAT\tBT\tPR\tCT\tTAT\tWT\n";
+    for (int i = 0; i < n; i++) {
+        cout << "P" << proc[i].pid << "\t\t"
+             << proc[i].at << "\t" << proc[i].bt << "\t" << proc[i].pr << "\t"
+             << proc[i].ct << "\t" << proc[i].tat << "\t" << proc[i].wt << endl;
+        total_wt += proc[i].wt;
+        total_tat += proc[i].tat;
+    }
+
+    cout << "\nAverage Waiting Time = " << total_wt / n;
+    cout << "\nAverage Turnaround Time = " << total_tat / n << endl;
+}
+
+// Print Gantt Chart
+void printGanttChart(Slot slots[], int k) {
+    cout << "\nGantt Chart (Priority Preemptive):\n\n";
+
+    for (int i = 0; i < k; i++) cout << "+-----";
+    cout << "+\n";
+
+    for (int i = 0; i < k; i++) {
+        if (slots[i].pid == -1) cout << "| IDLE";
+        else cout << "| P" << setw(2) << slots[i].pid << " ";
+    }
+    cout << "|\n";
+
+    for (int i = 0; i < k; i++) cout << "+-----";
+    cout << "+\n";
+
+    cout << slots[0].start;
+    for (int i = 0; i < k; i++) cout << setw(6) << slots[i].end;
+    cout << endl;
+}
+
+int main() {
+    int n;
+    cout << "Enter number of processes: ";
+    cin >> n;
+
+    Process proc[n];
+    for (int i = 0; i < n; i++) {
+        cout << "Enter AT, BT, Priority for Process " << i + 1 << ": ";
+        cin >> proc[i].at >> proc[i].bt >> proc[i].pr;
+        proc[i].pid = i + 1;
+        proc[i].done = false;
+    }
+
+    Slot slots[500];
+    int k = priorityPreemptive(proc, n, slots);
+
+    display(proc, n);
+    printGanttChart(slots, k);
+
+    return 0;
+}
+// output :
+Enter number of processes: 4
+Enter AT, BT, Priority for Process 1: 0 3 2
+Enter AT, BT, Priority for Process 2: 1 6 1
+Enter AT, BT, Priority for Process 3: 4 4 3
+Enter AT, BT, Priority for Process 4: 6 2 4
+
+Processes       AT      BT      PR      CT      TAT     WT
+P1              0       3       2       9       9       6
+P2              1       6       1       7       6       0
+P3              4       4       3       13      9       5
+P4              6       2       4       15      9       7
+
+Average Waiting Time = 4.5
+Average Turnaround Time = 8.25
+
+Gantt Chart (Priority Preemptive):
+
++-----+-----+-----+-----+-----+
+| P 1 | P 2 | P 1 | P 3 | P 4 |
++-----+-----+-----+-----+-----+
+0     1     7     9    13    15
+

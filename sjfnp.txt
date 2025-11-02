@@ -1,0 +1,166 @@
+
+// SJF Non Preemptive 
+
+#include <iostream>
+#include <iomanip>
+using namespace std;
+
+struct Process {
+    int pid; // Process ID
+    int at;  // Arrival Time
+    int bt;  // Burst Time
+    int ct;  // Completion Time
+    int tat; // Turnaround Time
+    int wt;  // Waiting Time
+};
+
+// To store execution order
+struct Gantt {
+    int pid;
+    int start;
+    int end;
+};
+
+void sortByArrival(Process proc[], int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (proc[i].at > proc[j].at) {
+                Process temp = proc[i];
+                proc[i] = proc[j];
+                proc[j] = temp;
+            }
+            else if (proc[i].at == proc[j].at && proc[i].bt > proc[j].bt) {
+                Process temp = proc[i];
+                proc[i] = proc[j];
+                proc[j] = temp;
+            }
+        }
+    }
+}
+
+int findTimes(Process proc[], int n, Gantt gantt[]) {
+    int time = 0, completed = 0, gIndex = 0;
+    bool done[100] = {false};
+
+    while (completed < n) {
+        int idx = -1, minBT = 1e9;
+
+        // Find process with min burst among arrived processes
+        for (int i = 0; i < n; i++) {
+            if (!done[i] && proc[i].at <= time) {
+                if (proc[i].bt < minBT) {
+                    minBT = proc[i].bt;
+                    idx = i;
+                }
+            }
+        }
+
+        if (idx == -1) {
+            time++; // CPU idle
+        } else {
+            gantt[gIndex].pid = proc[idx].pid;
+            gantt[gIndex].start = time;
+            time += proc[idx].bt;
+            proc[idx].ct = time;
+            proc[idx].tat = proc[idx].ct - proc[idx].at;
+            proc[idx].wt = proc[idx].tat - proc[idx].bt;
+            done[idx] = true;
+            gantt[gIndex].end = time;
+            gIndex++;
+            completed++;
+        }
+    }
+    return n; // number of executed processes (same as n)
+}
+
+void display(Process proc[], int n) {
+    int total_wt = 0, total_tat = 0;
+
+    cout << "\nProcesses\tAT\tBT\tCT\tTAT\tWT\n";
+    for (int i = 0; i < n; i++) {
+        cout << "P" << proc[i].pid << "\t\t"
+             << proc[i].at << "\t" << proc[i].bt << "\t"
+             << proc[i].ct << "\t" << proc[i].tat << "\t" << proc[i].wt << endl;
+
+        total_wt += proc[i].wt;
+        total_tat += proc[i].tat;
+    }
+
+    cout << "\nAverage Waiting Time = " << (float)total_wt / n;
+    cout << "\nAverage Turnaround Time = " << (float)total_tat / n << endl;
+}
+
+void printGanttChart(Gantt gantt[], int n) {
+    cout << "\nGantt Chart :\n\n";
+
+    // Top border
+    for (int i = 0; i < n; i++) cout << "+-----";
+    cout << "+\n";
+
+    // Process IDs
+    for (int i = 0; i < n; i++) {
+        cout << "| P" << setw(2) << gantt[i].pid << " ";
+    }
+    cout << "|\n";
+
+    // Bottom border
+    for (int i = 0; i < n; i++) cout << "+-----";
+    cout << "+\n";
+
+    // Timeline
+    cout << gantt[0].start;
+    for (int i = 0; i < n; i++) {
+        cout << setw(6) << gantt[i].end;
+    }
+    cout << endl;
+}
+
+int main() {
+    int n;
+    cout << "Enter number of processes: ";
+    cin >> n;
+
+    Process proc[n];
+    for (int i = 0; i < n; i++) {
+        cout << "Enter Arrival Time and Burst Time for Process " << i + 1 << ": ";
+        cin >> proc[i].at >> proc[i].bt;
+        proc[i].pid = i + 1;
+    }
+
+    sortByArrival(proc, n);
+
+    Gantt gantt[n];
+    int gCount = findTimes(proc, n, gantt);
+
+    display(proc, n);
+    printGanttChart(gantt, gCount);
+
+    return 0;
+}
+// output :
+Enter number of processes: 5
+Enter Arrival Time and Burst Time for Process 1: 7 5
+Enter Arrival Time and Burst Time for Process 2: 3 4
+Enter Arrival Time and Burst Time for Process 3: 10 3
+Enter Arrival Time and Burst Time for Process 4: 0 8
+Enter Arrival Time and Burst Time for Process 5: 12 6
+
+Processes       AT      BT      CT      TAT     WT
+P4              0       8       8       8       0
+P2              3       4       12      9       5
+P1              7       5       20      13      8
+P3              10      3       15      5       2
+P5              12      6       26      14      8
+
+Average Waiting Time = 4.6
+Average Turnaround Time = 9.8
+
+Gantt Chart :
+
++-----+-----+-----+-----+-----+
+| P 4 | P 2 | P 3 | P 1 | P 5 |
++-----+-----+-----+-----+-----+
+0     8    12    15    20    26
+
+
+

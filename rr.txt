@@ -1,0 +1,172 @@
+// Round Robin :
+
+#include <iostream>
+#include <queue>
+#include <iomanip>
+using namespace std;
+
+struct Process {
+    int pid;   // Process ID
+    int at;    // Arrival Time
+    int bt;    // Burst Time
+    int ct;    // Completion Time
+    int tat;   // Turnaround Time
+    int wt;    // Waiting Time
+    int rt;    // Remaining Time
+};
+
+struct Slot {
+    int pid;
+    int start;
+    int end;
+};
+
+// Round Robin Scheduling
+int roundRobin(Process proc[], int n, int tq, Slot slots[]) {
+    queue<int> q;
+    int time = 0, completed = 0, k = 0;
+    bool inQueue[n] = {false};
+
+    for (int i = 0; i < n; i++) proc[i].rt = proc[i].bt;
+
+    // Start at the first process arrival
+    while (completed < n) {
+        // Push new arrivals
+        for (int i = 0; i < n; i++) {
+            if (!inQueue[i] && proc[i].at <= time && proc[i].rt > 0) {
+                q.push(i);
+                inQueue[i] = true;
+            }
+        }
+
+        if (q.empty()) { // CPU idle
+            slots[k].pid = -1;
+            slots[k].start = time;
+            time++;
+            slots[k].end = time;
+            k++;
+            continue;
+        }
+        int idx = q.front();
+        q.pop();
+
+        slots[k].pid = proc[idx].pid;
+        slots[k].start = time;
+
+        int execTime = min(tq, proc[idx].rt);
+        proc[idx].rt -= execTime;
+        time += execTime;
+
+        slots[k].end = time;
+
+        // Push new arrivals during execution
+        for (int i = 0; i < n; i++) {
+            if (!inQueue[i] && proc[i].at <= time && proc[i].rt > 0) {
+                q.push(i);
+                inQueue[i] = true;
+            }
+        }
+
+        if (proc[idx].rt > 0) {
+            q.push(idx); // put back in queue
+        } else {
+            proc[idx].ct = time;
+            proc[idx].tat = proc[idx].ct - proc[idx].at;
+            proc[idx].wt = proc[idx].tat - proc[idx].bt;
+            completed++;
+        }
+
+        // Merge same consecutive slots
+        if (k > 0 && slots[k].pid == slots[k-1].pid) {
+            slots[k-1].end = slots[k].end;
+            k--;
+        }
+        k++;
+    }
+
+    return k; // number of slots
+}
+
+// Display Process Table
+void display(Process proc[], int n) {
+    float total_wt = 0, total_tat = 0;
+    cout << "\nProcesses\tAT\tBT\tCT\tTAT\tWT\n";
+    for (int i = 0; i < n; i++) {
+        cout << "P" << proc[i].pid << "\t\t"
+             << proc[i].at << "\t" << proc[i].bt << "\t"
+             << proc[i].ct << "\t" << proc[i].tat << "\t" << proc[i].wt << endl;
+        total_wt += proc[i].wt;
+        total_tat += proc[i].tat;
+    }
+    cout << "\nAverage Waiting Time = " << total_wt / n;
+    cout << "\nAverage Turnaround Time = " << total_tat / n << endl;
+}
+
+// Print Gantt Chart
+void printGanttChart(Slot slots[], int k) {
+    cout << "\nGantt Chart (Round Robin):\n\n";
+
+    for (int i = 0; i < k; i++) cout << "+-----";
+    cout << "+\n";
+
+    for (int i = 0; i < k; i++) {
+        if (slots[i].pid == -1) cout << "| IDLE";
+        else cout << "| P" << setw(2) << slots[i].pid << " ";
+    }
+    cout << "|\n";
+
+    for (int i = 0; i < k; i++) cout << "+-----";
+    cout << "+\n";
+
+    cout << slots[0].start;
+    for (int i = 0; i < k; i++) cout << setw(6) << slots[i].end;
+    cout << endl;
+}
+
+int main() {
+    int n, tq;
+    cout << "Enter number of processes: ";
+    cin >> n;
+
+    Process proc[n];
+    for (int i = 0; i < n; i++) {
+        cout << "Enter AT, BT for Process " << i+1 << ": ";
+        cin >> proc[i].at >> proc[i].bt;
+        proc[i].pid = i+1;
+    }
+
+    cout << "Enter Time Quantum: ";
+    cin >> tq;
+
+    Slot slots[500];
+    int k = roundRobin(proc, n, tq, slots);
+
+    display(proc, n);
+    printGanttChart(slots, k);
+
+    return 0;
+}
+// output
+Enter number of processes: 5
+Enter AT, BT for Process 1: 7 5
+Enter AT, BT for Process 2: 3 4
+Enter AT, BT for Process 3: 10 3
+Enter AT, BT for Process 4: 0 8
+Enter AT, BT for Process 5: 12 6
+Enter Time Quantum: 3
+
+Processes       AT      BT      CT      TAT     WT
+P1              7       5       23      16      11
+P2              3       4       10      7       3
+P3              10      3       18      8       5
+P4              0       8       15      15      7
+P5              12      6       26      14      8
+
+Average Waiting Time = 6.8
+Average Turnaround Time = 12
+
+Gantt Chart (Round Robin):
++-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+| P 4 | P 2 | P 4 | P 2 | P 1 | P 4 | P 3 | P 5 | P 1 | P 5 |
++-----+-----+-----+-----+-----+-----+-----+-----+-----+-----+
+0     3     6     9    10    13    15    18    21    23    26

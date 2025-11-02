@@ -1,0 +1,167 @@
+// FCFS 
+
+#include <iostream>
+#include <iomanip>
+using namespace std;
+
+struct Process {
+    int pid;
+    int at;
+    int bt;
+    int ct;
+    int tat;
+    int wt;
+};
+
+// Sort by Arrival Time
+void sortByArrival(Process proc[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (proc[i].at > proc[j].at) {
+                Process temp = proc[i];
+                proc[i] = proc[j];
+                proc[j] = temp;
+            }
+        }
+    }
+}
+
+// Calculate Completion, TAT, WT
+void findTimes(Process proc[], int n) {
+    proc[0].ct = proc[0].at + proc[0].bt;
+    proc[0].tat = proc[0].ct - proc[0].at;
+    proc[0].wt = proc[0].tat - proc[0].bt;
+
+    for (int i = 1; i < n; i++) {
+        if (proc[i].at > proc[i-1].ct) {
+            proc[i].ct = proc[i].at + proc[i].bt; // CPU idle
+        } else {
+            proc[i].ct = proc[i-1].ct + proc[i].bt;
+        }
+        proc[i].tat = proc[i].ct - proc[i].at;
+        proc[i].wt = proc[i].tat - proc[i].bt;
+    }
+}
+
+// Square-box style Gantt Chart
+void printGanttChart(Process proc[], int n) {
+    cout << "\nGantt Chart :\n\n";
+
+    // Top border
+    for (int i = 0; i < n; i++) {
+        cout << "+-----";
+    }
+    cout << "+\n";
+
+    // Process IDs inside squares
+    for (int i = 0; i < n; i++) {
+        cout << "| P" << setw(2) << proc[i].pid << " ";
+    }
+    cout << "|\n";
+
+    // Bottom border
+    for (int i = 0; i < n; i++) {
+        cout << "+-----";
+    }
+    cout << "+\n";
+
+    // Timeline
+    cout << proc[0].at;
+    for (int i = 0; i < n; i++) {
+        cout << setw(6) << proc[i].ct;
+    }
+    cout << endl;
+}
+
+void findAvgTime(Process proc[], int n) {
+    int total_wt = 0, total_tat = 0;
+
+    cout << "\nProcesses  AT\t BT\t CT\t TAT \t WT\n";
+    for (int i = 0; i < n; i++) {
+        cout << "P" << proc[i].pid << "\t   "
+             << proc[i].at << "\t  "
+             << proc[i].bt << "\t  "
+             << proc[i].ct << "\t  "
+             << proc[i].tat << "\t  "
+             << proc[i].wt << endl;
+
+        total_wt += proc[i].wt;
+        total_tat += proc[i].tat;
+    }
+
+    cout << "\nAverage Waiting Time = " << (float)total_wt / n;
+    cout << "\nAverage Turnaround Time = " << (float)total_tat / n << endl;
+
+    printGanttChart(proc, n);
+}
+
+int main() {
+    int n;
+    cout << "Enter the number of processes: ";
+    cin >> n;
+
+    Process proc[n];
+    for (int i = 0; i < n; i++) {
+        cout << "Enter arrival time and burst time for process " << i + 1 << ": ";
+        cin >> proc[i].at >> proc[i].bt;
+        proc[i].pid = i + 1;
+    }
+
+    sortByArrival(proc, n);
+    findTimes(proc, n);
+    findAvgTime(proc, n);
+
+    return 0;
+}
+
+// output :
+bvcoew@bvcoew-OptiPlex-3000:~$ g++ fcfs.cpp -o fcfs
+bvcoew@bvcoew-OptiPlex-3000:~$ ./fcfs
+
+Enter the number of processes: 5
+Enter arrival time and burst time for process 1: 7 5
+Enter arrival time and burst time for process 2: 3 4
+Enter arrival time and burst time for process 3: 10 3
+Enter arrival time and burst time for process 4: 0 8
+Enter arrival time and burst time for process 5: 12 6
+
+
+
+Processes  AT    BT      CT      TAT     WT
+P4         0      8       8       8       0
+P2         3      4       12      9       5
+P1         7      5       17      10      5
+P3         10     3       20      10      7
+P5         12     6       26      14      8
+
+Average Waiting Time = 5
+Average Turnaround Time = 10.2
+
+Gantt Chart :
+
++-----+-----+-----+-----+-----+
+| P 4 | P 2 | P 1 | P 3 | P 5 |
++-----+-----+-----+-----+-----+
+0     8    12    17    20    26
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
