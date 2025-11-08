@@ -1,0 +1,20 @@
+#include <stdio.h> 
+#include <stdlib.h> 
+ 
+int main() {     int n, i, head, total_movement = 0, completed = 0, min, pos, diff;     printf("Enter number of disk requests: ");     scanf("%d", &n); 
+ 
+    int requests[n], visited[n];     printf("Enter the request sequence: ");     for (i = 0; i < n; i++) {         scanf("%d", &requests[i]);         visited[i] = 0; // initially not served 
+    } 
+ 
+    printf("Enter initial head position: ");     scanf("%d", &head);     printf("\nSeek Sequence: %d", head); 
+ 
+    while (completed < n) {         min = 9999;         pos = -1; 
+ 
+        // Find the nearest unvisited request         for (i = 0; i < n; i++) {             if (!visited[i]) {                 diff = abs(head - requests[i]);                 if (diff < min) {                     min = diff;                     pos = i; 
+                } 
+            } 
+        }         visited[pos] = 1;         total_movement += min;         head = requests[pos];         completed++;         printf("  %d", head); 
+    } 
+ 
+    printf("\n\nTotal Head Movement: %d", total_movement);     printf("\nAverage Seek Time: %.2f\n", (float)total_movement / n);     return 0; 
+} 

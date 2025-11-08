@@ -1,0 +1,30 @@
+#include <stdio.h> 
+#include <stdlib.h> 
+ 
+int main() {     int n, i, j, head, total_movement = 0, index = 0; 
+ 
+    printf("Enter number of disk requests: ");     scanf("%d", &n); 
+ 
+    int requests[n];     printf("Enter the request sequence: ");     for (i = 0; i < n; i++)         scanf("%d", &requests[i]); 
+ 
+    printf("Enter initial head position: ");     scanf("%d", &head); 
+ 
+    // Sort the requests in ascending order     for (i = 0; i < n - 1; i++) {         for (j = i + 1; j < n; j++) {             if (requests[i] > requests[j]) {                 int temp = requests[i];                 requests[i] = requests[j];                 requests[j] = temp; 
+            } 
+        } 
+    } 
+    // Find the index where the head fits in the sorted list     for (i = 0; i < n; i++) {         if (head < requests[i]) {             index = i;             break; 
+        } 
+    } 
+ 
+    // If head is larger than all requests     if (index == 0 && head > requests[n - 1])         index = n;     printf("\nSeek Sequence: %d", head); 
+ 
+    // Step 1: Move right from the head 
+    for (i = index; i < n; i++) {         total_movement += abs(head - requests[i]);         head = requests[i];         printf("  %d", head); 
+    } 
+    // Step 2: Reverse direction and service remaining (left side)     for (i = index - 1; i >= 0; i--) {         total_movement += abs(head - requests[i]);         head = requests[i];         printf("  %d", head); 
+    } 
+    printf("\n\nTotal Head Movement: %d", total_movement);     printf("\nAverage Seek Time: %.2f\n", (float)total_movement / n); 
+ 
+    return 0; 
+} 

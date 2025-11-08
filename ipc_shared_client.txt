@@ -1,0 +1,38 @@
+#include <sys/shm.h> 
+#include <sys/stat.h> 
+#include <stdlib.h> 
+#include <unistd.h> 
+#include <sys/types.h> 
+#include <stdio.h> 
+ 
+#define SIZE 400 
+#define DATA_NOT_FILLED -1 
+#define DATA_FILLED 0 
+#define DATA_READ_CLIENT 1 
+ 
+typedef struct data {     int status;     char buff[100]; 
+} datal; 
+ 
+int main() {     int key, shmid;     datal *shm_ptr;     key = ftok(".", 'A');     if (key == -1) {         perror("ftok");         exit(1); 
+    } 
+ 
+    shmid = shmget(key, SIZE, 0666);     if (shmid < 0) {         perror("shmget");         exit(1); 
+    } 
+    printf("Shared memory ID found: %d\n", shmid); 
+ 
+    shm_ptr = (datal *)shmat(shmid, NULL, 0);     if (shm_ptr == (void *)-1) {         perror("shmat");         exit(1); 
+    } 
+ 
+    printf("Shared memory attached successfully.\n"); 
+ 
+    // Only wait if data is not filled yet 
+    while (shm_ptr->status == DATA_NOT_FILLED) { 
+        printf("Waiting for data to be filled by server...\n");         sleep(1); 
+    } 
+ 
+    if (shm_ptr->status == DATA_FILLED) {         printf("Data read from shared memory: %s\n", shm_ptr->buff);         shm_ptr->status = DATA_READ_CLIENT; 
+    } else {         printf("Unexpected status value. Exiting.\n"); 
+    } 
+ 
+    shmdt(shm_ptr);     printf("Client detached shared memory and exiting.\n");     return 0; 
+} 
